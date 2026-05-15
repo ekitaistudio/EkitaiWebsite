@@ -1,36 +1,1030 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EKITAI 高斯模糊</title>
-    <link rel="icon" href="favicon.ico"/>
-    <style>
-        body, html {
-            height: 100%;
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background-color: #bbb;
-        }
-        .image-container {
-            max-width: 100%;
-            max-height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        img {
-            max-width: 20%;
-            max-height: 100vh;
-            object-fit: contain;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EKITAI — 高斯模糊股份有限公司</title>
+  <meta name="description" content="EKITAI 是以新媒體藝術為核心的創意團隊，融合藝術、設計與科技，創造獨特的數位互動體驗。">
+  <link rel="icon" href="favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
+
+  <style>
+    /* ─── Reset & 基礎 ─── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0a;
+      --bg-2: #111111;
+      --bg-3: #1a1a1a;
+      --border: rgba(255,255,255,0.08);
+      --white: #ffffff;
+      --grey: rgba(255,255,255,0.45);
+      --grey-2: rgba(255,255,255,0.2);
+      --accent: #ffffff;
+      --font-en: 'Inter', sans-serif;
+      --font-zh: 'Noto Sans TC', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--white);
+      font-family: var(--font-zh);
+      font-weight: 300;
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    /* ─── Navigation ─── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 48px;
+      background: rgba(10,10,10,0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.3s;
+    }
+
+    nav.scrolled { border-bottom-color: var(--border); }
+
+    .nav-logo {
+      font-family: var(--font-en);
+      font-size: 18px;
+      font-weight: 500;
+      letter-spacing: 0.15em;
+      color: var(--white);
+      text-decoration: none;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 40px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-family: var(--font-en);
+      font-size: 13px;
+      font-weight: 400;
+      letter-spacing: 0.08em;
+      color: var(--grey);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--white); }
+
+    /* 漢堡選單（手機版） */
+    .nav-hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      padding: 4px;
+    }
+
+    .nav-hamburger span {
+      display: block;
+      width: 22px;
+      height: 1px;
+      background: var(--white);
+      transition: all 0.3s;
+    }
+
+    .nav-hamburger.open span:nth-child(1) { transform: rotate(45deg) translate(4px, 4px); }
+    .nav-hamburger.open span:nth-child(2) { opacity: 0; }
+    .nav-hamburger.open span:nth-child(3) { transform: rotate(-45deg) translate(4px, -4px); }
+
+    /* 手機版選單 */
+    .nav-mobile {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      z-index: 99;
+      background: var(--bg);
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 40px;
+    }
+
+    .nav-mobile.open { display: flex; }
+
+    .nav-mobile a {
+      font-family: var(--font-en);
+      font-size: 28px;
+      font-weight: 400;
+      letter-spacing: 0.1em;
+      color: var(--white);
+      text-decoration: none;
+      transition: opacity 0.2s;
+    }
+
+    .nav-mobile a:hover { opacity: 0.5; }
+
+    /* ─── Hero ─── */
+    #hero {
+      min-height: 100svh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 80px 48px 60px;
+      position: relative;
+      overflow: hidden;
+      text-align: center;
+    }
+
+    .hero-title {
+      font-family: var(--font-en);
+      font-size: clamp(72px, 12vw, 180px);
+      font-weight: 300;
+      letter-spacing: -0.02em;
+      line-height: 0.9;
+      color: var(--white);
+    }
+
+    .hero-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 48px;
+      border-top: 1px solid var(--border);
+      padding-top: 28px;
+      width: 100%;
+    }
+
+    .hero-desc {
+      font-size: 13px;
+      color: var(--grey);
+      letter-spacing: 0.05em;
+      text-align: center;
+    }
+
+    /* 滾動提示 */
+    .scroll-hint {
+      position: absolute;
+      bottom: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      opacity: 0.3;
+    }
+
+    .scroll-hint span {
+      font-family: var(--font-en);
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      writing-mode: vertical-rl;
+    }
+
+    .scroll-line {
+      width: 1px;
+      height: 48px;
+      background: var(--white);
+      animation: scrollDown 1.8s ease-in-out infinite;
+    }
+
+    @keyframes scrollDown {
+      0% { transform: scaleY(0); transform-origin: top; }
+      50% { transform: scaleY(1); transform-origin: top; }
+      51% { transform: scaleY(1); transform-origin: bottom; }
+      100% { transform: scaleY(0); transform-origin: bottom; }
+    }
+
+    /* ─── 共用 Section 樣式 ─── */
+    section { padding: 120px 48px; }
+
+    .section-index {
+      font-family: var(--font-en);
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      color: var(--grey-2);
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      font-family: var(--font-en);
+      font-size: clamp(36px, 5vw, 72px);
+      font-weight: 300;
+      letter-spacing: -0.01em;
+      line-height: 1;
+      margin-bottom: 80px;
+    }
+
+    /* ─── About ─── */
+    #about { background: var(--bg); }
+
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: start;
+    }
+
+    .about-text p {
+      font-size: 15px;
+      color: rgba(255,255,255,0.75);
+      line-height: 1.9;
+      margin-bottom: 20px;
+    }
+
+    .about-text .highlight {
+      font-size: 22px;
+      font-weight: 400;
+      color: var(--white);
+      line-height: 1.6;
+      margin-bottom: 32px;
+    }
+
+    /* 時間軸 */
+    .timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .timeline-item {
+      display: grid;
+      grid-template-columns: 80px 1fr;
+      gap: 24px;
+      padding: 28px 0;
+      border-top: 1px solid var(--border);
+      position: relative;
+    }
+
+    .timeline-item:last-child { border-bottom: 1px solid var(--border); }
+
+    .timeline-year {
+      font-family: var(--font-en);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--grey);
+      padding-top: 2px;
+    }
+
+    .timeline-content h4 {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--white);
+      margin-bottom: 6px;
+    }
+
+    .timeline-content p {
+      font-size: 13px;
+      color: var(--grey);
+      line-height: 1.7;
+    }
+
+    .timeline-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .timeline-tag {
+      font-family: var(--font-en);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      padding: 3px 10px;
+      border: 1px solid var(--border);
+      color: var(--grey);
+    }
+
+    /* ─── Services ─── */
+    #services { background: var(--bg-2); }
+
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      border-left: 1px solid var(--border);
+    }
+
+    .service-col {
+      padding: 48px 40px;
+      border-right: 1px solid var(--border);
+      border-top: 1px solid var(--border);
+    }
+
+    .service-en {
+      font-family: var(--font-en);
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      color: var(--grey-2);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    .service-title {
+      font-size: 20px;
+      font-weight: 500;
+      margin-bottom: 32px;
+      line-height: 1.4;
+    }
+
+    .service-items {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .service-items li {
+      font-size: 13px;
+      color: var(--grey);
+      padding-left: 16px;
+      position: relative;
+    }
+
+    .service-items li::before {
+      content: '—';
+      position: absolute;
+      left: 0;
+      color: var(--grey-2);
+    }
+
+    /* ─── Works ─── */
+    #works { background: var(--bg); }
+
+    .works-filter {
+      display: flex;
+      gap: 0;
+      margin-bottom: 60px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .filter-btn {
+      font-family: var(--font-zh);
+      font-size: 13px;
+      font-weight: 400;
+      color: var(--grey);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 12px 24px;
+      position: relative;
+      transition: color 0.2s;
+      white-space: nowrap;
+    }
+
+    .filter-btn::after {
+      content: '';
+      position: absolute;
+      bottom: -1px; left: 0; right: 0;
+      height: 1px;
+      background: var(--white);
+      transform: scaleX(0);
+      transition: transform 0.2s;
+    }
+
+    .filter-btn.active { color: var(--white); }
+    .filter-btn.active::after { transform: scaleX(1); }
+    .filter-btn:hover { color: rgba(255,255,255,0.7); }
+
+    .works-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border);
+    }
+
+    .work-card {
+      background: var(--bg);
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      display: block;
+    }
+
+    .work-card[data-category] { transition: opacity 0.3s, transform 0.3s; }
+    .work-card.hidden { display: none; }
+
+    .work-thumb {
+      width: 100%;
+      aspect-ratio: 4/3;
+      background: var(--bg-3);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* 佔位圖漸層背景 */
+    .work-thumb::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, var(--ph-a, #1a1a1a) 0%, var(--ph-b, #2a2a2a) 100%);
+    }
+
+    .work-thumb-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0);
+      transition: background 0.3s;
+    }
+
+    .work-card:hover .work-thumb-overlay { background: rgba(0,0,0,0.3); }
+
+    .work-info {
+      padding: 20px 24px 24px;
+    }
+
+    .work-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .work-tag {
+      font-family: var(--font-en);
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      color: var(--grey-2);
+    }
+
+    .work-tag::before { content: '#'; }
+
+    .work-name {
+      font-size: 15px;
+      font-weight: 400;
+      color: var(--white);
+      line-height: 1.4;
+      margin-bottom: 6px;
+    }
+
+    .work-client {
+      font-size: 12px;
+      color: var(--grey);
+    }
+
+    /* ─── Contact ─── */
+    #contact {
+      background: var(--bg-2);
+      border-top: 1px solid var(--border);
+    }
+
+    .contact-inner {
+      max-width: 800px;
+    }
+
+    .contact-cta {
+      font-size: clamp(32px, 5vw, 64px);
+      font-weight: 300;
+      line-height: 1.2;
+      margin-bottom: 64px;
+      color: var(--white);
+    }
+
+    .contact-links {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .contact-row {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .contact-label {
+      font-family: var(--font-en);
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      color: var(--grey-2);
+      width: 80px;
+      flex-shrink: 0;
+      text-transform: uppercase;
+    }
+
+    .contact-value {
+      font-family: var(--font-en);
+      font-size: clamp(16px, 2.5vw, 28px);
+      font-weight: 300;
+      color: var(--white);
+      text-decoration: none;
+      letter-spacing: 0.02em;
+      transition: opacity 0.2s;
+    }
+
+    .contact-value:hover { opacity: 0.5; }
+
+    /* ─── Footer ─── */
+    footer {
+      padding: 32px 48px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+
+    footer p {
+      font-family: var(--font-en);
+      font-size: 11px;
+      color: var(--grey-2);
+      letter-spacing: 0.05em;
+    }
+
+    /* ─── 入場動畫 ─── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ─── RWD ─── */
+    @media (max-width: 900px) {
+      nav { padding: 18px 24px; }
+      .nav-links { display: none; }
+      .nav-hamburger { display: flex; }
+
+      #hero { padding: 80px 24px 48px; }
+      .hero-bottom { flex-direction: column; align-items: center; gap: 12px; }
+
+      section { padding: 80px 24px; }
+
+      .about-grid { grid-template-columns: 1fr; gap: 48px; }
+
+      .services-grid { grid-template-columns: 1fr; }
+
+      .works-filter { overflow-x: auto; padding-bottom: 0; }
+      .filter-btn { padding: 12px 18px; }
+
+      .works-grid { grid-template-columns: 1fr 1fr; }
+
+      footer { padding: 24px; flex-direction: column; gap: 8px; text-align: center; }
+    }
+
+    @media (max-width: 600px) {
+      .works-grid { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
 <body>
-    <div class="image-container">
-        <img src="images/logo/logo_black.png" alt="ekitai logo black">
+
+  <!-- Navigation -->
+  <nav id="nav">
+    <a href="#hero" class="nav-logo">EKITAI</a>
+    <ul class="nav-links">
+      <li><a href="#about">About</a></li>
+      <li><a href="#services">Services</a></li>
+      <li><a href="#works">Works</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+    <div class="nav-hamburger" id="hamburger" aria-label="選單">
+      <span></span><span></span><span></span>
     </div>
+  </nav>
+
+  <!-- 手機版選單 -->
+  <div class="nav-mobile" id="mobileMenu">
+    <a href="#about" class="mobile-link">About</a>
+    <a href="#services" class="mobile-link">Services</a>
+    <a href="#works" class="mobile-link">Works</a>
+    <a href="#contact" class="mobile-link">Contact</a>
+  </div>
+
+  <!-- Hero -->
+  <section id="hero">
+    <h1 class="hero-title reveal">EKITAI</h1>
+    <div class="hero-bottom reveal">
+      <p class="hero-desc">數位藝術 ╱ 互動設計 ╱ 體驗設計</p>
+    </div>
+    <div class="scroll-hint">
+      <span>SCROLL</span>
+      <div class="scroll-line"></div>
+    </div>
+  </section>
+
+  <!-- About -->
+  <section id="about">
+    <div class="section-index reveal">01</div>
+    <h2 class="section-title reveal">About</h2>
+    <div class="about-grid">
+      <div class="about-text">
+        <p class="highlight reveal">EKITAI 成立於 2024 年，<br>是一個以新媒體藝術為核心的創意團隊。</p>
+        <p class="reveal">EKITAI 源自日語「液体」，象徵在快速變遷的液態社會中，我們透過融合藝術、設計與科技，創造獨特的數位互動體驗。</p>
+        <p class="reveal">我們希望藉由新媒體藝術，為人與人之間不斷變化的關係建立連接，同時為商業模式注入新意，為客戶開拓更多的創新可能性。</p>
+      </div>
+      <div class="timeline reveal">
+        <div class="timeline-item">
+          <div class="timeline-year">2007</div>
+          <div class="timeline-content">
+            <h4>tripper</h4>
+            <p>以台灣電聲廠牌為出發，獨立發行唱片，培養國內音樂創作人才，邀請國外知名電子音樂創作者舉辦演出與講座。</p>
+            <div class="timeline-tags">
+              <span class="timeline-tag">音樂廠牌</span>
+              <span class="timeline-tag">演出活動</span>
+            </div>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-year">2019</div>
+          <div class="timeline-content">
+            <p>廣納集結來自各類不同創作領域的夥伴，工作範圍涵蓋影像、音樂、網頁、活動，專注於動態視覺、數位音像、互動裝置創作、VJ、3D Mapping Projection 之發展，更投入策展、體驗為核心的策畫工作。</p>
+            <div class="timeline-tags">
+              <span class="timeline-tag">視覺藝術</span>
+              <span class="timeline-tag">商業活動</span>
+              <span class="timeline-tag">活動統籌</span>
+              <span class="timeline-tag">策展規劃</span>
+            </div>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-year">2024</div>
+          <div class="timeline-content">
+            <h4>EKITAI</h4>
+            <p>子公司 EKITAI 成立，專注於數位創意領域，整合技術，提供多層次的互動體驗，探索嶄新的數位商業價值。</p>
+            <div class="timeline-tags">
+              <span class="timeline-tag">數位藝術</span>
+              <span class="timeline-tag">視覺設計</span>
+              <span class="timeline-tag">互動體驗</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Services -->
+  <section id="services">
+    <div class="section-index reveal">02</div>
+    <h2 class="section-title reveal">Services</h2>
+    <div class="services-grid">
+      <div class="service-col reveal">
+        <div class="service-en">Art / Design</div>
+        <h3 class="service-title">視覺設計</h3>
+        <ul class="service-items">
+          <li>活動視覺設計</li>
+          <li>網頁設計</li>
+          <li>UI / UX 設計</li>
+          <li>裝置設計</li>
+          <li>動態設計</li>
+        </ul>
+      </div>
+      <div class="service-col reveal">
+        <div class="service-en">Research / Development</div>
+        <h3 class="service-title">程式開發</h3>
+        <ul class="service-items">
+          <li>互動裝置</li>
+          <li>軟硬體整合</li>
+          <li>衍生藝術</li>
+          <li>程式開發</li>
+        </ul>
+      </div>
+      <div class="service-col reveal">
+        <div class="service-en">Experience Design</div>
+        <h3 class="service-title">體驗設計</h3>
+        <ul class="service-items">
+          <li>用戶體驗</li>
+          <li>跨界整合</li>
+          <li>數據應用</li>
+          <li>藝術、設計</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Works -->
+  <section id="works">
+    <div class="section-index reveal">03</div>
+    <h2 class="section-title reveal">Works</h2>
+
+    <!-- 篩選按鈕 -->
+    <div class="works-filter reveal">
+      <button class="filter-btn active" data-filter="all">All</button>
+      <button class="filter-btn" data-filter="motion">動態視覺</button>
+      <button class="filter-btn" data-filter="install">互動與藝術裝置</button>
+      <button class="filter-btn" data-filter="web">互動式網頁</button>
+    </div>
+
+    <!-- 作品卡片 -->
+    <div class="works-grid">
+
+      <!-- 動態視覺 -->
+      <div class="work-card" data-category="motion" style="--ph-a:#1c1520;--ph-b:#2d1f35;">
+        <div class="work-thumb"><div class="work-thumb-overlay"></div></div>
+        <div class="work-info">
+          <div class="work-tags"><span class="work-tag">視覺設計</span><span class="work-tag">視覺統籌</span></div>
+          <div class="work-name">Paper Planes</div>
+          <div class="work-client">50大酒吧頒獎典禮</div>
+        </div>
+      </div>
+
+      <div class="work-card" data-category="motion" style="--ph-a:#1a1510;--ph-b:#2e2215;">
+        <div class="work-thumb"><div class="work-thumb-overlay"></div></div>
+        <div class="work-info">
+          <div class="work-tags"><span class="work-tag">現場視覺</span></div>
+          <div class="work-name">GUCCI 秋冬秀</div>
+          <div class="work-client">GUCCI</div>
+        </div>
+      </div>
+
+      <div class="work-card" data-category="motion" style="--ph-a:#101a20;--ph-b:#15262e;">
+        <div class="work-thumb"><div class="work-thumb-overlay"></div></div>
+        <div class="work-info">
+          <div class="work-tags"><span class="work-tag">現場視覺</span><span class="work-tag">光雕投影</span></div>
+          <div class="work-name">LANCER IO 光影秀</div>
+          <div class="work-client">MITSUBISHI</div>
+        </div>
+      </div>
+
+      <div class="work-card" data-category="motion" style="--ph-a:#1a1010;--ph-b:#2e1515;">
+        <div class="work-thumb"><div class="work-thumb-overlay"></div></div>
+        <div class="work-info">
+          <div class="work-tags"><span class="work-tag">視覺設計</span></div>
+          <div class="work-name">Fashion Warriors — Rise of the Orient</div>
+          <div class="work-client">Fashion Warriors</div>
+        </div>
+      </div>
+
+      <div class="work-card" data-category="motion" style="--ph-a:#1a1820;--ph-b:#252035;">
+        <div class="work-thumb"><div class="work-thumb-overlay"></div></div>
+        <div class="work-info">
+          <div class="work-tags"><span class="work-tag">藝術合作</span></div>
+          <div class="work-name">王九思 × 法國巴黎瘋馬秀</div>
+          <div class="work-client">Wang Jiu-Si</div>
+        </div>
+      </div>
+
+      <div class="work-card" data-category="motion" style="--ph-a:#101a15;--ph-b:#15261c;">
+        <div class="work-thumb"><div class="work-thumb-overlay"></div></div>
+        <div class="work-info">
+          <div class="work-tags"><span class="work-tag">視覺設計</span><span class="work-tag">環境投影</span></div>
+          <div class="work-name">蘇格登全感空間環景品酩</div>
+          <div class="work-client">Singleton</div>
+        </div>
+      </div>
+
+      <!-- 互動與藝術裝置 -->
+      <div class="work-card" data-category="install" style="--ph-a:#101520;--ph-b:#152030;">
+        <div class="work-thumb"><div class="work-thumb-overlay"></div></div>
+        <div class="work-info">
+          <div class="work-tags"><span class="work-tag">互動裝置</span><span class="work-tag">數位藝術</span></div>
+          <div class="work-name">伊奇泰計劃</div>
+          <div class="work-client">EKITAI</div>
+        </div>
+      </div>
+
+      <div class="work-card" data-category="install" style="--ph-a:#1a1010;--ph-b:#2a1818;">
+        <div class="work-thumb"><div class="work-thumb-overlay"></div></div>
+        <div class="work-info">
+          <div class="work-tags"><span class="work-tag">互動裝置</span></div>
+          <div class="work-name">Fallenbuilding 墜落建設</div>
+          <div class="work-client">臺北藝穗節</div>
+        </div>
+      </div>
+
+      <div class="work-card" data-category="install" style="--ph-a:#101820;--ph-b:#18242e;">
+        <div class="work-thumb"><div class="work-thumb-overlay"></div></div>
+        <div class="work-info">
+          <div class="work-tags"><span class="work-tag">品牌活動</span><span class="work-tag">互動體驗</span></div>
+          <div class="work-name">戰繩挑戰賽</div>
+          <div class="work-client">Men's Biore</div>
+        </div>
+      </div>
+
+      <div class="work-card" data-category="install" style="--ph-a:#101520;--ph-b:#1a2535;">
+        <div class="work-thumb"><div class="work-thumb-overlay"></div></div>
+        <div class="work-info">
+          <div class="work-tags"><span class="work-tag">新媒體藝術</span><span class="work-tag">互動裝置</span><span class="work-tag">體驗設計</span></div>
+          <div class="work-name">科技 × 藝術 數位生活館</div>
+          <div class="work-client">台灣大哥大三創</div>
+        </div>
+      </div>
+
+      <div class="work-card" data-category="install" style="--ph-a:#1a1815;--ph-b:#2a2520;">
+        <div class="work-thumb"><div class="work-thumb-overlay"></div></div>
+        <div class="work-info">
+          <div class="work-tags"><span class="work-tag">品牌活動</span><span class="work-tag">互動體驗</span></div>
+          <div class="work-name">20珂學肌膚知識特展</div>
+          <div class="work-client">珂潤</div>
+        </div>
+      </div>
+
+      <div class="work-card" data-category="install" style="--ph-a:#201a15;--ph-b:#352818;">
+        <div class="work-thumb"><div class="work-thumb-overlay"></div></div>
+        <div class="work-info">
+          <div class="work-tags"><span class="work-tag">品牌活動</span><span class="work-tag">互動體驗</span></div>
+          <div class="work-name">數位拉霸機</div>
+          <div class="work-client">雅詩蘭黛</div>
+        </div>
+      </div>
+
+      <div class="work-card" data-category="install" style="--ph-a:#151520;--ph-b:#202030;">
+        <div class="work-thumb"><div class="work-thumb-overlay"></div></div>
+        <div class="work-info">
+          <div class="work-tags"><span class="work-tag">體驗設計</span><span class="work-tag">互動拍貼</span></div>
+          <div class="work-name">互動馬賽克牆</div>
+          <div class="work-client">品牌活動</div>
+        </div>
+      </div>
+
+      <div class="work-card" data-category="install" style="--ph-a:#101a12;--ph-b:#182818;">
+        <div class="work-thumb"><div class="work-thumb-overlay"></div></div>
+        <div class="work-info">
+          <div class="work-tags"><span class="work-tag">視覺設計</span><span class="work-tag">互動裝置</span></div>
+          <div class="work-name">原音聚會所 — 台東原住民音樂人特展</div>
+          <div class="work-client">台東縣政府</div>
+        </div>
+      </div>
+
+      <div class="work-card" data-category="install" style="--ph-a:#15101a;--ph-b:#221828;">
+        <div class="work-thumb"><div class="work-thumb-overlay"></div></div>
+        <div class="work-info">
+          <div class="work-tags"><span class="work-tag">新媒體藝術</span><span class="work-tag">互動裝置</span><span class="work-tag">體驗設計</span></div>
+          <div class="work-name">原音聚會所 — 推播活動</div>
+          <div class="work-client">金曲歌手蘇瓦那</div>
+        </div>
+      </div>
+
+      <div class="work-card" data-category="install" style="--ph-a:#1a1510;--ph-b:#282015;">
+        <div class="work-thumb"><div class="work-thumb-overlay"></div></div>
+        <div class="work-info">
+          <div class="work-tags"><span class="work-tag">新媒體藝術</span><span class="work-tag">互動裝置</span></div>
+          <div class="work-name">熱感應貼紙抽獎機</div>
+          <div class="work-client">GQ 潮流祭 × Desidere</div>
+        </div>
+      </div>
+
+      <div class="work-card" data-category="install" style="--ph-a:#10181a;--ph-b:#182428;">
+        <div class="work-thumb"><div class="work-thumb-overlay"></div></div>
+        <div class="work-info">
+          <div class="work-tags"><span class="work-tag">新媒體藝術</span><span class="work-tag">互動裝置</span></div>
+          <div class="work-name">烏日燈會互動音樂盒</div>
+          <div class="work-client">台灣燈會</div>
+        </div>
+      </div>
+
+      <div class="work-card" data-category="install" style="--ph-a:#101a1a;--ph-b:#162828;">
+        <div class="work-thumb"><div class="work-thumb-overlay"></div></div>
+        <div class="work-info">
+          <div class="work-tags"><span class="work-tag">互動裝置</span><span class="work-tag">體驗設計</span></div>
+          <div class="work-name">長榮數位通關</div>
+          <div class="work-client">長榮航空</div>
+        </div>
+      </div>
+
+      <div class="work-card" data-category="install" style="--ph-a:#1a1010;--ph-b:#261818;">
+        <div class="work-thumb"><div class="work-thumb-overlay"></div></div>
+        <div class="work-info">
+          <div class="work-tags"><span class="work-tag">互動遊戲</span><span class="work-tag">多屏連線</span></div>
+          <div class="work-name">百人點擊遊戲</div>
+          <div class="work-client">雄獅旅遊</div>
+        </div>
+      </div>
+
+      <div class="work-card" data-category="install" style="--ph-a:#151520;--ph-b:#1e1e30;">
+        <div class="work-thumb"><div class="work-thumb-overlay"></div></div>
+        <div class="work-info">
+          <div class="work-tags"><span class="work-tag">新媒體藝術</span></div>
+          <div class="work-name">圓裝置</div>
+          <div class="work-client">交通大學</div>
+        </div>
+      </div>
+
+      <!-- 互動式網頁 -->
+      <div class="work-card" data-category="web" style="--ph-a:#101820;--ph-b:#182535;">
+        <div class="work-thumb"><div class="work-thumb-overlay"></div></div>
+        <div class="work-info">
+          <div class="work-tags"><span class="work-tag">手機互動網頁</span></div>
+          <div class="work-name">UNIwater</div>
+          <div class="work-client">UNI Water × 藝術家、音樂人</div>
+        </div>
+      </div>
+
+      <div class="work-card" data-category="web" style="--ph-a:#1a1510;--ph-b:#281f14;">
+        <div class="work-thumb"><div class="work-thumb-overlay"></div></div>
+        <div class="work-info">
+          <div class="work-tags"><span class="work-tag">網頁製作</span></div>
+          <div class="work-name">好初漫報</div>
+          <div class="work-client">好初早餐</div>
+        </div>
+      </div>
+
+      <div class="work-card" data-category="web" style="--ph-a:#15101a;--ph-b:#201528;">
+        <div class="work-thumb"><div class="work-thumb-overlay"></div></div>
+        <div class="work-info">
+          <div class="work-tags"><span class="work-tag">網頁製作</span></div>
+          <div class="work-name">本色音樂</div>
+          <div class="work-client">本色音樂</div>
+        </div>
+      </div>
+
+    </div><!-- /.works-grid -->
+  </section>
+
+  <!-- Contact -->
+  <section id="contact">
+    <div class="section-index reveal">04</div>
+    <div class="contact-inner">
+      <h2 class="contact-cta reveal">讓我們一起<br>創造獨特的數位體驗</h2>
+      <div class="contact-links">
+        <div class="contact-row reveal">
+          <span class="contact-label">Email</span>
+          <a href="mailto:hello@ekitai.studio" class="contact-value">hello@ekitai.studio</a>
+        </div>
+        <div class="contact-row reveal">
+          <span class="contact-label">Phone</span>
+          <a href="tel:0223512781" class="contact-value">02-2351-2781</a>
+        </div>
+        <div class="contact-row reveal">
+          <span class="contact-label">Instagram</span>
+          <a href="https://www.instagram.com/ekitaistudio/" target="_blank" rel="noopener" class="contact-value">@ekitaistudio</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <p>© 2024 高斯模糊股份有限公司 — EKITAI</p>
+  </footer>
+
+  <script>
+    // ─── Nav 滾動效果 ───
+    const nav = document.getElementById('nav');
+    window.addEventListener('scroll', () => {
+      nav.classList.toggle('scrolled', window.scrollY > 40);
+    });
+
+    // ─── 漢堡選單 ───
+    const hamburger = document.getElementById('hamburger');
+    const mobileMenu = document.getElementById('mobileMenu');
+
+    hamburger.addEventListener('click', () => {
+      hamburger.classList.toggle('open');
+      mobileMenu.classList.toggle('open');
+      document.body.style.overflow = mobileMenu.classList.contains('open') ? 'hidden' : '';
+    });
+
+    document.querySelectorAll('.mobile-link').forEach(link => {
+      link.addEventListener('click', () => {
+        hamburger.classList.remove('open');
+        mobileMenu.classList.remove('open');
+        document.body.style.overflow = '';
+      });
+    });
+
+    // ─── Scroll reveal 入場動畫 ───
+    const reveals = document.querySelectorAll('.reveal');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry, i) => {
+        if (entry.isIntersecting) {
+          // 同一批進場的元素依序延遲
+          setTimeout(() => {
+            entry.target.classList.add('visible');
+          }, 80 * i);
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
+
+    reveals.forEach(el => observer.observe(el));
+
+    // ─── Works 篩選 ───
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    const workCards = document.querySelectorAll('.work-card');
+
+    filterBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        // 更新按鈕狀態
+        filterBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        const filter = btn.dataset.filter;
+
+        workCards.forEach(card => {
+          if (filter === 'all' || card.dataset.category === filter) {
+            card.classList.remove('hidden');
+          } else {
+            card.classList.add('hidden');
+          }
+        });
+      });
+    });
+  </script>
+
 </body>
 </html>
