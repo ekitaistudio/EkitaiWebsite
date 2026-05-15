@@ -50,10 +50,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     <!-- Hero -->
     <div class="work-hero" style="--ph-a:${work.ph.a};--ph-b:${work.ph.b};">
-      <div class="work-hero-bg">
+      <div class="work-hero-bg"></div>
+      <div class="work-hero-overlay">
         ${work.images[0] ? `<img src="${work.images[0]}" alt="${work.name}">` : ''}
       </div>
-      <div class="work-hero-overlay"></div>
       <div class="work-hero-content">
         <div class="work-hero-category">${work.categoryLabel}</div>
         <h1 class="work-hero-title">${work.name}</h1>

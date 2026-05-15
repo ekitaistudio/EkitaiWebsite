@@ -1,6 +1,28 @@
-/* 首頁邏輯：Nav 滾動、漢堡選單、Works 篩選、Reveal 動畫 */
+/* 首頁邏輯：Nav 滾動、漢堡選單、Works 渲染與篩選、Reveal 動畫 */
 
 document.addEventListener('DOMContentLoaded', () => {
+
+  /* ── 從 works.js 動態產生作品卡片 ── */
+  const grid = document.querySelector('.works-grid');
+  if (grid && typeof WORKS !== 'undefined') {
+    grid.innerHTML = WORKS.map(work => `
+      <a class="work-card" data-category="${work.category}"
+         href="works.html?id=${work.id}"
+         style="--ph-a:${work.ph.a};--ph-b:${work.ph.b};">
+        <div class="work-thumb">
+          ${work.images[0] ? `<img src="${work.images[0]}" alt="${work.name}" loading="lazy">` : ''}
+          <div class="work-thumb-overlay"></div>
+        </div>
+        <div class="work-info">
+          <div class="work-tags">
+            ${work.tags.map(t => `<span class="work-tag">${t}</span>`).join('')}
+          </div>
+          <div class="work-name">${work.name}</div>
+          <div class="work-client">${work.client}</div>
+        </div>
+      </a>
+    `).join('');
+  }
 
   /* ── Nav 滾動效果 ── */
   const nav = document.getElementById('nav');
